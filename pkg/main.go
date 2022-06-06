@@ -11,7 +11,7 @@ import (
 	"os"
 	"telegram-test-bot/pkg/dt/webhook"
 	"telegram-test-bot/pkg/service/message"
-	"telegram-test-bot/pkg/service/mongo_client"
+	"telegram-test-bot/pkg/service/mongoclient"
 )
 import "net/http"
 
@@ -63,8 +63,8 @@ func main() {
 			ChatId: 2090444260,
 			Text:   "Hello World",
 		})
-		mc := mongo_client.Connection{}
-		mw := mongo_client.Writer(mongo_client.WriteDocument{
+		mc := mongoclient.Connection{}
+		mw := mongoclient.Writer(mongoclient.WriteDocument{
 			Database:   "test_document",
 			Collection: "test_collection",
 			SingleData: bson.D{{"test_key", "test_value"}},

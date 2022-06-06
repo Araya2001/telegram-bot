@@ -4,13 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"io/ioutil"
+	"log"
+	"os"
 	"telegram-test-bot/pkg/dt/webhook"
 	"telegram-test-bot/pkg/service/message"
 )
 import "net/http"
 
 func main() {
+	envFile := os.Getenv("ENV_FILE")
+	if err := godotenv.Load(envFile); err != nil {
+		log.Println("No .env file found")
+	}
 	r := gin.Default()
 
 	r.GET("/ping", func(c *gin.Context) {

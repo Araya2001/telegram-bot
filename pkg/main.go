@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
 	"io/ioutil"
 	"log"
 	"os"
 	"telegram-test-bot/pkg/dt/webhook"
 	"telegram-test-bot/pkg/service/message"
+	"telegram-test-bot/pkg/service/mongo_client"
 )
 import "net/http"
 
@@ -61,6 +63,14 @@ func main() {
 			ChatId: 2090444260,
 			Text:   "Hello World",
 		})
+		mc := mongo_client.Connection{}
+		mw := mongo_client.Writer(mongo_client.WriteDocument{
+			Database:   "test_document",
+			Collection: "test_collection",
+			SingleData: bson.D{{"test_key", "test_value"}},
+		})
+		result, err := mw.SetOneDocument(mc)
+		fmt.Println(result)
 		fmt.Println(msgreq)
 		msg := message.Sender(message.SendMessageResponse{})
 		sendMessage, err := msg.SendMessage(msgreq)

@@ -3,15 +3,18 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"io/ioutil"
 	"log"
 	"os"
-	"telegram-test-bot/pkg/dt/webhook"
-	"telegram-test-bot/pkg/service/message"
-	"telegram-test-bot/pkg/service/mongoclient"
+	"telegram-bot/pkg/dt/webhook"
+	"telegram-bot/pkg/service/bot"
+	"telegram-bot/pkg/service/message"
+	"telegram-bot/pkg/service/mongoclient"
+	"time"
 )
 import "net/http"
 
@@ -21,6 +24,22 @@ func main() {
 		log.Println("No .env file found")
 	}
 	r := gin.Default()
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "OPTIONS"},
+		AllowHeaders:     []string{"Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With"},
+		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			return origin == "*"
+		},
+		MaxAge: 12 * time.Hour,
+	}))
+
+	r.GET("/", func(context *gin.Context) {
+
+	})
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -82,6 +101,32 @@ func main() {
 			"message": sendMessage},
 		)
 
+	})
+
+	r.POST("/send-message", func(c *gin.Context) {
+		jsonData, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		data := bot.Message{}
+		_ = json.Unmarshal(jsonData, &data)
+		fmt.Println(data)
+		s := bot.Sender(bot.Message{
+			Message: data.Message,
+			IdChat:  data.IdChat,
+		})
+		err = s.Send()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "error",
+				"message": "Error sending message",
+			})
+			log.Fatal(err)
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "OK",
+			"message": "Message was sent succesfully",
+		})
 	})
 	err := r.Run()
 	if err != nil {
